@@ -139,7 +139,10 @@ public class Router extends Device
 			return;
 		}
 		// 6.2 obtain & set the new MAC address
-		ArpEntry arpEntry = arpCache.lookup(route.getDestinationAddress());
+		ArpEntry arpEntry = arpCache.lookup(route.getGatewayAddress());
+		if(arpEntry == null){
+			arpEntry = arpCache.lookup(header.getDestinationAddress());
+		}
 		MACAddress newMacAddr = arpEntry.getMac();
 		MACAddress sourMacAddr = route.getInterface().getMacAddress();
 		etherPacket.setSourceMACAddress(sourMacAddr.toString());
