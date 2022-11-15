@@ -132,41 +132,18 @@ public class Router extends Device
 		}
 
 		// 6. Forward the packet
-		System.out.println("destinatinoAddr:");
-		int destinatinoAddr = header.getDestinationAddress();
-		System.out.println(IPv4.fromIPv4Address(destinatinoAddr));
-		RouteEntry route = this.routeTable.lookup(destinatinoAddr);
-		//System.out.println("Route");
-		//System.out.println(route);
-		//System.out.println(route.getInterface());
-		//System.out.println(route.getInterface().getMacAddress());
+		RouteEntry route = routeTable.lookup(header.getDestinationAddress());
 		// 6.1 check if route exists
 		if(route == null){
 			System.out.println("No matching route, drop it");
 			return;
 		}
 		// 6.2 obtain & set the new MAC address
-		//System.out.println("route.getDestinationAddress()");
-		//System.out.println(IPv4.fromIPv4Address(route.getDestinationAddress()));
-		//System.out.println(IPv4.fromIPv4Address(route.getGatewayAddress()));
-		int nextHop = route.getGatewayAddress();
-		//System.out.println("nextHop");
-		//System.out.println(IPv4.fromIPv4Address(nextHop));
-		ArpEntry arpEntry = arpCache.lookup(nextHop);
-		if(arpEntry == null){
-			arpEntry = arpCache.lookup(destinatinoAddr);
-		}
-		//System.out.println("arpEntry");
-		//System.out.println(arpEntry);
-		//System.out.println(String.format("%s", IPv4.fromIPv4Address(arpEntry.getIp())));
+		ArpEntry arpEntry = arpCache.lookup(route.getDestinationAddress());
 		MACAddress newMacAddr = arpEntry.getMac();
 		MACAddress sourMacAddr = route.getInterface().getMacAddress();
-		if(sourMacAddr == null){
-			ArpEntry sourAryEntry = arpCache.lookup(route.getInterface().getIpAddress());
-			sourMacAddr = sourAryEntry.getMac();
-		}
-		etherPacket.setSourceMACAddress(sourMacAddr.toBytes());
-		etherPacket.setDestinationMACAddress(newMacAddr.toBytes());
+		etherPacket.setSourceMACAddress(sourMacAddr.toString());
+		etherPacket.setDestinationMACAddress(newMacAddr.toString());
 		// 6.3 send packet
 		boolean res = this.sendPacket(etherPacket, route.getInterface());
 		System.out.println("Forwarding " + (res ? "successed!" : "failed!"));
